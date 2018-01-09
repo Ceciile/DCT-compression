@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Created on 9th Janv. 2018
+Created in 2018
 sudo apt-get install python-skimage
-@author: qianqian FU
+@author: qianqian
 """
 import numpy as np
 import skimage as sk
@@ -18,7 +18,7 @@ import PIL as pil #pour utiliser la librairie d'écriture de fichier jpeg
 I =skio.imread("horse.bmp");
 Ing = color.rgb2gray(I)
 
-img_gray=sk.img_as_float(Ing)
+img_gray=sk.img_as_float(Ing)*255.0
 plt.figure(1)
 plt.rcParams['image.cmap']='gray'
 plt.imshow(img_gray,cmap='gray')
@@ -56,18 +56,20 @@ MOVEMENT-VIDEO
 otil-prefe-grappty 
 """
 
-def quantification(tab, comp):
+def quantification(tab, comp):# 0~1
+    t=np.zeros((8,8))
     for i in range(8):
         for j in range(8):
-            tab[i,j]=np.round(tab[i,j]/(1+(1+i+j)*comp))
-    return tab
+            t[i,j]=np.round(tab[i,j]/(1+(1+i+j)*comp))
+    return t
 
 
 def DEquantification(tab, comp):
+    t=np.zeros((8,8))
     for i in range(8):
         for j in range(8):
-            tab[i,j]=np.round(tab[i,j]*(1+(1+i+j)*comp))
-    #return tab
+            t[i,j]=tab[i,j]*(1+(1+i+j)*comp)
+    return t
 
 def dcoupe(img_gray,n):
     window_size = (n,n)
@@ -76,6 +78,8 @@ def dcoupe(img_gray,n):
     quant=np.zeros(img_size)
     dctblock=np.zeros(window_size)
     newim=np.zeros(window_size)
+    t1=np.zeros((8,8))
+    t2=np.zeros((8,8))
 # get the largest dimension
     max_dim = max(img_size)
     # Crop out the window and calculate
@@ -85,15 +89,15 @@ def dcoupe(img_gray,n):
 #            dctblock=np.zeros(window_size)
             dctblock=dct2(window)
 
-	    quant[r:r+n,c:c+n]=quantification(dctblock, 5)
-	    DEquantification(quant[r:r+n,c:c+n], 5)
+	    t1=quantification(dctblock, 5)
+	    t2=DEquantification(t1, 5)
 #            newim=np.zeros(window_size)
-            newim=idct2(quant[r:r+n,c:c+n])#dctblock
+            newim=idct2(t2)#quant[r:r+n,c:c+n]
             new_gray[r:r+n,c:c+n]=newim
 #    quantIm=pil.Image.fromarray(np.ubyte(np.round(255.0*quant,0)))
 #pour sauver l'image en format jpeg pour une qualité voulue
 #    quantIm.save('quantif.jpeg',quality=20)
-    monIm=pil.Image.fromarray(np.ubyte(np.round(255.0*new_gray,0)))
+    monIm=pil.Image.fromarray(np.ubyte(np.round(new_gray,0)))
 #    fich=open('madct.dat','wb')
 #    fich.write(np.reshape(quantIm,-1)) 
 #on étend le tableau en 1D pour pouvoir enregistrer chaque octet
